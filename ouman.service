@@ -1,0 +1,9 @@
+[Unit]
+Description=Ouman logger tool
+
+[Service]
+WorkingDirectory=/home/pi/ouman
+ExecStart=python3 ouman.py -l 60 -f temps.csv
+
+[Install]
+WantedBy=multi-user.target
