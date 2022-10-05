@@ -1,11 +1,11 @@
-# ouman
-Ouman EH-200 series tool
+# ouman.py
+## Ouman EH-200 series tool
 
 This tool can be used to query and write Ouman EH-200 series data. These devices can be connected to a PC with RS-232 null modem cable. The tool can be also used for logging device data at defined interval in csv format. Logging is freely configurable with ouman_config.json.
 
-Examples
+## Examples
 
-Query id 1 which is device information
+### Query id 1 which is device information
 
 ```
 $ python3 ouman.py -i 1
@@ -19,7 +19,7 @@ $ python3 ouman.py -i 1
 }
 ```
 
-Query id 12 which is heating settings
+### Query id 12 which is heating settings
 
 ```
 $ python3 ouman.py -i 12
@@ -35,7 +35,7 @@ $ python3 ouman.py -i 12
 }
 ```
 
-Query id 20 which is water flow (EH-201)
+### Query id 20 which is water flow (EH-201)
 
 ```
 $ python3 ouman.py -i 20
@@ -46,7 +46,7 @@ $ python3 ouman.py -i 20
 }
 ```
 
-Show usage
+### Show usage
 
 ```
 $ python3 ouman.py -h
