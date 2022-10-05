@@ -46,6 +46,19 @@ $ python3 ouman.py -i 20
 }
 ```
 
+### Write id 2 which is date and time
+This test writes zeroes minutes and shows the expected result. When -t option is removed the write is committed to the device.
+
+```
+$ python3 ouman.py -i 2 -w 00 -o 5 -t
+{
+    "raw": "02 82 09 00 02 07 e6 0a 05 16 00 26 c5",
+    "data_type": "datetime",
+    "date": "5.10.2022",
+    "time": "22:00:38"
+}
+```
+
 ### Show usage
 
 ```
