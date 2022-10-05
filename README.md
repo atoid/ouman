@@ -35,7 +35,7 @@ $ python3 ouman.py -i 12
 }
 ```
 
-### Query id 20 which is water flow (EH-201)
+### Query id 20 which is water flow (EH-201L)
 
 ```
 $ python3 ouman.py -i 20
