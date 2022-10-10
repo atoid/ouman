@@ -1,7 +1,7 @@
 # ouman.py
 ## Ouman EH-200 series tool
 
-This tool can be used to query and write Ouman EH-200 series data. These devices can be connected to a PC with RS-232 null modem cable. The tool can be also used for logging device data at defined interval in csv format. Logging is freely configurable with ouman_config.json.
+This tool can be used to query and write Ouman EH-200 series data. These devices can be connected to a PC with RS-232 null modem cable. The tool can be also used for logging device data at defined interval in csv format. Logging is freely configurable with ouman_config.json. When run in server mode (-s), multiple clients can access the device using client mode (-c). Server handles the client commands sequently in a controlled manner.
 
 ## Examples
 
@@ -73,4 +73,6 @@ ouman tool usage and options
  -l <interval> listen and log csv
  -f <file> log csv to file
  -p <dev> serial device, default is /dev/ttyUSB0
+ -s run server
+ -c run client
 ```
