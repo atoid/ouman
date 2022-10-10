@@ -4,6 +4,8 @@ import struct
 import getopt
 import json
 import time
+import socket
+import os
 
 #
 # Some ID numbers, for more information see
@@ -99,7 +101,7 @@ def parse_data(msg, res, data_type):
         res["L1_target"] = tmp[1]
 
 def parse_message(res):
-    msg = res["raw"]
+    msg = res.get("raw", bytearray())
     res["raw"] = msg.hex(" ")
 
     if len(msg) >= 6:
@@ -129,7 +131,38 @@ def check_crc(msg):
     else:
         return False, crc
 
+def run_server(sp):
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    s.bind("\x00ouman_server")
+
+    while True:
+        msg, sock = s.recvfrom(1024)
+        res = dict()
+        send_rcv_sp(sp, bytearray(msg), res)
+        res["raw"] = res["raw"].hex(" ")
+        s.sendto(json.dumps(res).encode(), sock)
+
 def send_rcv(sp, msg, res):
+    if sp:
+        send_rcv_sp(sp, msg, res)
+    else:
+        try:
+            send_rcv_dgram(msg, res)
+        except:
+            res["error"] = "socket"
+
+def send_rcv_dgram(msg, res):
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    s.bind("\x00ouman_client{}".format(os.getpid()))
+    s.sendto(bytes(msg), "\x00ouman_server")
+    s.settimeout(5)
+    msg, sock = s.recvfrom(1024)
+    s.close()
+    msg = json.loads(msg)
+    msg["raw"] = bytearray.fromhex(msg["raw"])
+    res.update(msg)
+
+def send_rcv_sp(sp, msg, res):
     add_crc(msg)
     sp.write(msg)
 
@@ -225,7 +258,12 @@ def listen(sp, opt_listen, opt_file):
             else:    
                 print(log_str)
 
-        time.sleep(opt_listen)
+        if opt_listen > 0:
+            time.sleep(opt_listen)
+        else:
+            if opt_file:
+                f_log.close()
+            sys.exit(0)
 
 def usage():
     print("ouman tool usage and options")
@@ -238,22 +276,27 @@ def usage():
     print(" -l <interval> listen and log csv")
     print(" -f <file> log csv to file")
     print(" -p <dev> serial device, default is /dev/ttyUSB0")
+    print(" -s run server")
+    print(" -c run client")
 
 # MAIN
 
 def main():
+    sp = None
     opt_id = 20
     opt_port = "/dev/ttyUSB0"
     #opt_msg = "02 81 02 00 1a"
     opt_msg = None
-    opt_listen = 0
+    opt_listen = None
     opt_write = None
     opt_offset = 0
     opt_test = False
     opt_file = None
+    opt_client = False
+    opt_server = False
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hti:m:p:l:w:o:f:")
+        opts, args = getopt.getopt(sys.argv[1:], "htsci:m:p:l:w:o:f:")
     except getopt.GetoptError as err:
         print(err)
         sys.exit(2)
@@ -274,6 +317,10 @@ def main():
             opt_file = a
         elif o == "-t":
             opt_test = True
+        elif o == "-s":
+            opt_server = True
+        elif o == "-c":
+            opt_client = True
         elif o == "-w":
             opt_write = a
         elif o == "-o":
@@ -281,10 +328,21 @@ def main():
         else:
             assert False, "unhandled option"
 
-    sp = serial.Serial(opt_port, 4800, timeout=2)
+    if opt_client and opt_server:
+        print("Cannot run in server and client mode")
+        sys.exit(2)
 
-    if opt_listen > 0:
-        print("Listening, Ctrl+C to exit")
+    if not opt_client:
+        sp = serial.Serial(opt_port, 4800, timeout=2, exclusive=True)
+
+    if opt_server:
+        print("Server mode, Ctrl+C to exit")
+        run_server(sp)
+        sys.exit()
+
+    if opt_listen != None:
+        if opt_listen > 0:
+            print("Listening, Ctrl+C to exit")
         listen(sp, opt_listen, opt_file)
 
     res = dict()
@@ -301,7 +359,8 @@ def main():
     res_json = json.dumps(res, indent=4)
     print(res_json)
 
-    sp.close()
+    if sp:
+        sp.close()
 
 if __name__ == "__main__":
     main()
